@@ -1,30 +1,31 @@
 use std::{fmt::Display, primitive};
+pub trait Number:
+    std::ops::Mul + std::ops::Add + std::marker::Copy + Default + std::fmt::Display + From<i32>
+{
+}
+impl<
+        T: std::ops::Mul + std::ops::Add + std::marker::Copy + Default + std::fmt::Display + From<i32>,
+    > Number for T
+{
+}
 
-pub trait Diag<T> {
+pub trait Diag<T: Number> {
     type Output<U>;
     fn diag(d: T) -> Self::Output<T>;
 }
 
-pub trait Eye<T>: Diag<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy,
-{
+pub trait Eye<T: Number>: Diag<T> {
     fn eye() -> Self::Output<T> {
-        Self::diag(1)
+        Self::diag(T::from(1))
     }
 }
 
-pub struct M4<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy,
-{
+#[derive(Default)]
+pub struct M4<T: Number> {
     elements: [[T; 4]; 4],
 }
 
-impl<T> std::ops::Index<usize> for M4<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy,
-{
+impl<T: Number> std::ops::Index<usize> for M4<T> {
     type Output = [T; 4];
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -32,56 +33,61 @@ where
     }
 }
 
-impl<T> Diag<T> for M4<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy,
-{
+impl<T: Number> std::ops::IndexMut<usize> for M4<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.elements[index]
+    }
+}
+
+impl<T: Number> Diag<T> for M4<T> {
     type Output<U> = M4<T>;
 
     fn diag(d: T) -> Self::Output<T> {
         M4 {
             elements: [
-                [d, T::from(0 as T), 0.into(), 0.into()],
-                [0.into(), d, 0.into(), 0.into()],
-                [0.into(), 0.into(), d, 0.into()],
-                [0.into(), 0.into(), 0.into(), d],
+                [d, T::default(), T::default(), T::default()],
+                [T::default(), d, T::default(), T::default()],
+                [T::default(), T::default(), d, T::default()],
+                [T::default(), T::default(), T::default(), d],
             ],
         }
     }
 }
 
-impl<T> Eye<T> for M4<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy + std::fmt::Display,
-{
-    // type Output<U> = M4<T>;
-
+impl<T: Number> Eye<T> for M4<T> {
     fn eye() -> Self::Output<T> {
         Self::diag(T::from(1))
     }
 }
 
-impl<T> Display for M4<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy + std::fmt::Display,
-{
+impl<T: Number> Display for M4<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Ok(for &row in &self.elements {
+        for &row in &self.elements {
             for &el in &row {
                 write!(f, "[{}] ", el)?;
             }
-            write!(f, "\n")?;
-        })
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
 
-impl<T> M4<T>
-where
-    T: std::ops::Mul + std::ops::Add + std::marker::Copy,
-{
+impl<T: Number + std::ops::Add<Output = T>> M4<T> {
     pub fn new() -> M4<T> {
         M4 {
-            elements: [[T::from(0); 4]; 4],
+            elements: [[T::default(); 4]; 4],
         }
+    }
+
+    pub fn trace(&self) -> T {
+        self.elements[0][0] + self.elements[1][1] + self.elements[2][2] + self.elements[3][3]
+    }
+
+    pub fn inv(&self) -> Self {
+        todo!()
+    }
+
+    pub fn transpose(&self) -> Self {
+        todo!()
     }
 }
