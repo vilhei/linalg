@@ -1,4 +1,4 @@
-use std::{fmt::Display, primitive};
+use std::fmt::Display;
 pub trait Number:
     std::ops::Mul + std::ops::Add + std::marker::Copy + Default + std::fmt::Display + From<i32>
 {
@@ -89,5 +89,12 @@ impl<T: Number + std::ops::Add<Output = T>> M4<T> {
 
     pub fn transpose(&self) -> Self {
         todo!()
+    }
+
+    pub fn get(&self, i: usize, j: usize) -> Option<T> {
+        if i > 3 || j > 3 {
+            return None;
+        }
+        Some(self.elements[i][j])
     }
 }
