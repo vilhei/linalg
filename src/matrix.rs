@@ -91,6 +91,7 @@ impl<T: Number + std::ops::Add<Output = T>> M4<T> {
         todo!()
     }
 
+    /// .
     pub fn get(&self, i: usize, j: usize) -> Option<T> {
         if i > 3 || j > 3 {
             return None;
