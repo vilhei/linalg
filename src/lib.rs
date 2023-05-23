@@ -46,4 +46,27 @@ mod tests {
     // fn index_matrix() {
     //     let m: M4<u64> = M4::eye();
     // }
+
+    #[test]
+    fn should_transpose() {
+        let m = M4::from([
+            [1, 2, 3, 4],
+            [5, 6, 7, 8],
+            [9, 10, 11, 12],
+            [13, 14, 15, 16],
+        ]);
+        let t = m.transpose();
+
+        println!("{t}");
+
+        let expected = M4::from([
+            [1, 5, 9, 13],
+            [2, 6, 10, 14],
+            [3, 7, 11, 15],
+            [4, 8, 12, 16],
+        ]);
+
+        assert_eq!(expected, t);
+        assert_eq!(m, t.transpose());
+    }
 }

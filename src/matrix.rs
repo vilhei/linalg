@@ -20,7 +20,7 @@ pub trait Eye<T: Number>: Diag<T> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, PartialEq, Debug)]
 pub struct M4<T: Number> {
     elements: [[T; 4]; 4],
 }
@@ -36,6 +36,12 @@ impl<T: Number> std::ops::Index<usize> for M4<T> {
 impl<T: Number> std::ops::IndexMut<usize> for M4<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.elements[index]
+    }
+}
+
+impl<T: Number> From<[[T; 4]; 4]> for M4<T> {
+    fn from(value: [[T; 4]; 4]) -> Self {
+        M4 { elements: value }
     }
 }
 
@@ -88,7 +94,34 @@ impl<T: Number + std::ops::Add<Output = T>> M4<T> {
     }
 
     pub fn transpose(&self) -> Self {
-        todo!()
+        let mut t = self.clone();
+        unsafe {
+            std::mem::swap(
+                &mut *(&mut t.elements[1][0] as *mut T),
+                &mut *(&mut t.elements[0][1] as *mut T),
+            );
+            std::mem::swap(
+                &mut *(&mut t.elements[2][0] as *mut T),
+                &mut *(&mut t.elements[0][2] as *mut T),
+            );
+            std::mem::swap(
+                &mut *(&mut t.elements[2][1] as *mut T),
+                &mut *(&mut t.elements[1][2] as *mut T),
+            );
+            std::mem::swap(
+                &mut *(&mut t.elements[3][0] as *mut T),
+                &mut *(&mut t.elements[0][3] as *mut T),
+            );
+            std::mem::swap(
+                &mut *(&mut t.elements[3][1] as *mut T),
+                &mut *(&mut t.elements[1][3] as *mut T),
+            );
+            std::mem::swap(
+                &mut *(&mut t.elements[3][2] as *mut T),
+                &mut *(&mut t.elements[2][3] as *mut T),
+            );
+        }
+        t
     }
 
     pub fn get(&self, i: usize, j: usize) -> Option<T> {
