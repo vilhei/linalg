@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Add};
 pub trait Number:
-    std::ops::Mul + Add + std::marker::Copy + Default + std::fmt::Display + From<i32>
+    std::ops::Mul + Add<Output = Self> + std::marker::Copy + Default + std::fmt::Display + From<i32>
 {
 }
 impl<
@@ -74,7 +74,7 @@ impl<T: Number> Add for M4<T> {
                 temp_arr[i][j] = el1 + el2;
             }
         }
-        self.clone()
+        M4::from(temp_arr)
     }
 }
 
@@ -141,10 +141,17 @@ impl<T: Number + std::ops::Add<Output = T>> M4<T> {
         t
     }
 
-    pub fn get(&self, i: usize, j: usize) -> Option<T> {
+    pub fn get(&self, i: usize, j: usize) -> Option<&T> {
         if i > 3 || j > 3 {
             return None;
         }
-        Some(self.elements[i][j])
+        Some(&self.elements[i][j])
+    }
+
+    pub fn get_mut(&mut self, i: usize, j: usize) -> Option<&mut T> {
+        if i > 3 || j > 3 {
+            return None;
+        }
+        Some(&mut self.elements[i][j])
     }
 }
