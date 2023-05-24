@@ -1,10 +1,15 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Add};
 pub trait Number:
-    std::ops::Mul + std::ops::Add + std::marker::Copy + Default + std::fmt::Display + From<i32>
+    std::ops::Mul + Add<Output = Self> + std::marker::Copy + Default + std::fmt::Display + From<i32>
 {
 }
 impl<
-        T: std::ops::Mul + std::ops::Add + std::marker::Copy + Default + std::fmt::Display + From<i32>,
+        T: std::ops::Mul
+            + Add<Output = T>
+            + std::marker::Copy
+            + Default
+            + std::fmt::Display
+            + From<i32>,
     > Number for T
 {
 }
@@ -15,6 +20,7 @@ pub trait Diag<T: Number> {
 }
 
 pub trait Eye<T: Number>: Diag<T> {
+    #[inline]
     fn eye() -> Self::Output<T> {
         Self::diag(T::from(1))
     }
@@ -45,6 +51,33 @@ impl<T: Number> From<[[T; 4]; 4]> for M4<T> {
     }
 }
 
+impl<T: Number> Display for M4<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for &row in &self.elements {
+            for &el in &row {
+                write!(f, "[{}] ", el)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
+impl<T: Number> Add for M4<T> {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut temp_arr = [[T::default(); 4]; 4];
+
+        for (i, (&row, &row2)) in self.elements.iter().zip(&rhs.elements).enumerate() {
+            for (j, (&el1, &el2)) in row.iter().zip(&row2).enumerate() {
+                temp_arr[i][j] = el1 + el2;
+            }
+        }
+        M4::from(temp_arr)
+    }
+}
+
 impl<T: Number> Diag<T> for M4<T> {
     type Output<U> = M4<T>;
 
@@ -60,23 +93,7 @@ impl<T: Number> Diag<T> for M4<T> {
     }
 }
 
-impl<T: Number> Eye<T> for M4<T> {
-    fn eye() -> Self::Output<T> {
-        Self::diag(T::from(1))
-    }
-}
-
-impl<T: Number> Display for M4<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for &row in &self.elements {
-            for &el in &row {
-                write!(f, "[{}] ", el)?;
-            }
-            writeln!(f)?;
-        }
-        Ok(())
-    }
-}
+impl<T: Number> Eye<T> for M4<T> {}
 
 impl<T: Number + std::ops::Add<Output = T>> M4<T> {
     pub fn new() -> M4<T> {
@@ -124,10 +141,17 @@ impl<T: Number + std::ops::Add<Output = T>> M4<T> {
         t
     }
 
-    pub fn get(&self, i: usize, j: usize) -> Option<T> {
+    pub fn get(&self, i: usize, j: usize) -> Option<&T> {
         if i > 3 || j > 3 {
             return None;
         }
-        Some(self.elements[i][j])
+        Some(&self.elements[i][j])
+    }
+
+    pub fn get_mut(&mut self, i: usize, j: usize) -> Option<&mut T> {
+        if i > 3 || j > 3 {
+            return None;
+        }
+        Some(&mut self.elements[i][j])
     }
 }
